@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mind Bridge Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      text-align: center;
+      background: #0d0d0d;
+      color: #e0e0e0;
+    }
+    .hero {
+      background: url('https://picsum.photos/1200/400?grayscale') no-repeat center center;
+      background-size: cover;
+      height: 350px; /* increased hero height */
+      display: flex; align-items: center; justify-content: center;
+      color: #f5f5f5;
+      font-size: 36px; font-weight: bold;
+      text-shadow: 0 0 12px rgba(0,0,0,0.8);
+    }
+    .tagline {
+      background: #1c1c2b;
+      padding: 20px;
+      font-size: 20px;
+      font-style: italic;
+      color: #b0c4de;
+    }
+    .section {
+      padding: 40px;
+      background: #121212;
+    }
+    h2 { color: #f5f5f5; }
+    #chatbox {
+      width: 90%; height: 400px; /* increased chatbox height */
+      background: #1e1e2e; border-radius: 10px;
+      padding: 10px; overflow-y: auto;
+      text-align: left; margin: 20px auto; color: #f5f5f5;
+      border: 2px solid #333;
+    }
+    .message { margin: 8px 0; padding: 8px; border-radius: 6px; white-space: pre-line; }
+    .user { background: #2a3b4c; color: #e0e0e0; text-align: right; }
+    .bot { background: #3b2f5c; color: #f5f5f5; text-align: left; }
+    input {
+      width: 70%; padding: 10px;
+      border-radius: 8px; border: 1px solid #444;
+      margin-top: 10px;
+      background: #1e1e2e; color: #f5f5f5;
+    }
+    button {
+      padding: 10px 20px; background: #0056b3;
+      border: none; border-radius: 8px;
+      cursor: pointer; font-weight: bold; color: white;
+      margin-left: 10px;
+    }
+    button:hover { background: #003f7f; }
+    footer {
+      background: #111; color: #aaa;
+      padding: 15px; margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">Mind Bridge</div>
+  <div class="tagline">Connecting hobbies with happiness</div>
+
+  <div class="section">
+    <h2>About</h2>
+    <p>Mind Bridge helps people decide what to do when they're stuck. By analyzing hobbies, it suggests books, movies, and songs tailored to your interests.</p>
+  </div>
+
+  <div class="section">
+    <h2>Try It Out</h2>
+    <div id="chatbox"></div>
+    <input type="text" id="userInput" placeholder="Type your answer here...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <footer>© 2026 Mind Bridge | Hackathon Project</footer>
+
+  <script>
+    const questions = [
+      "🌐 Please choose your language: English, Hindi, or Telugu.",
+      "👾 Hi there! Tell me your hobby...",
+      "What kind of books do you usually read?",
+      "What kind of movies have you watched and liked?",
+      "Do you play games online or offline?",
+      "Would you describe yourself as extrovert, introvert, or both?"
+    ];
+
+    const suggestions = {
+      english: {
+        introvert: {
+          books: ["Quiet by Susan Cain"],
+          movies: ["Her (Spike Jonze)"],
+          songs: ["Fix You - Coldplay"]
+        },
+        extrovert: {
+          books: ["Big Magic by Elizabeth Gilbert"],
+          movies: ["The Social Network (David Fincher)"],
+          songs: ["Happy - Pharrell Williams"]
+        }
+      },
+      hindi: {
+        introvert: {
+          movies: ["Tamasha (Imtiaz Ali)", "Barfi! (Anurag Basu)"],
+          songs: ["Kabira - Arijit Singh", "Phir Le Aya Dil - Rekha Bhardwaj"]
+        },
+        extrovert: {
+          movies: ["Dil Chahta Hai (Farhan Akhtar)", "Zindagi Na Milegi Dobara (Zoya Akhtar)"],
+          songs: ["Senorita - Shankar-Ehsaan-Loy", "Gallan Goodiyan - Yashita Sharma"]
+        }
+      },
+      telugu: {
+        introvert: {
+          movies: ["C/o Kancharapalem (Venkatesh Maha)", "Mahanati (Nag Ashwin)"],
+          songs: ["Samajavaragamana - Sid Sriram", "Priyathama - S.P. Balasubrahmanyam"]
+        },
+        extrovert: {
+          movies: ["Ala Vaikunthapurramuloo (Trivikram Srinivas)", "DJ (Harish Shankar)"],
+          songs: ["Butta Bomma - Armaan Malik", "Top Lechipoddi - S.P. Balasubrahmanyam"]
+        }
+      }
+    };
+
+    let step = 0;
+    let userProfile = {};
+
+    function addMessage(text, sender) {
+      const chatbox = document.getElementById("chatbox");
+      const msg = document.createElement("div");
+      msg.className = "message " + sender;
+      msg.innerText = text;
+      chatbox.appendChild(msg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("userInput").value.trim().toLowerCase();
+      if (!input) return;
+      addMessage(input, "user");
+
+      if (step === 0) userProfile.language = input;
+      else if (step === 1) userProfile.hobby = input;
+      else if (step === 2) userProfile.books = input;
+      else if (step === 3) userProfile.movies = input;
+      else if (step === 4) userProfile.games = input;
+      else if (step === 5) userProfile.personality = input;
+
+      document.getElementById("userInput").value = "";
+      step++;
+
+      if (step < questions.length) {
+        addMessage(questions[step], "bot");
+      } else {
+        generateSuggestions();
+      }
+    }
+
+    function generateSuggestions() {
+      let reply = "Here are my suggestions for you:\n\n";
+      let matched = false;
+      const lang = userProfile.language || "english";
+
+      if (suggestions[lang]) {
+        let val = userProfile.personality;
+
+        // Handle "both" case by combining introvert + extrovert
+        if (val === "both") {
+          const intro = suggestions[lang].introvert;
+          const extro = suggestions[lang].extrovert;
+          matched = true;
+          reply += `📚 Books: ${(intro.books || []).concat(extro.books || []).join(", ")}\n`;
+          reply += `🎬 Movies: ${(intro.movies || []).concat(extro.movies || []).join(", ")}\n`;
+          reply += `🎵 Songs: ${(intro.songs || []).concat(extro.songs || []).join(", ")}\n\n`;
+        } else if (val && suggestions[lang][val]) {
+          matched = true;
+          const data = suggestions[lang][val];
+          reply += `📚 Books: ${data.books ? data.books.join(", ") : "N/A"}\n`;
+          reply += `🎬 Movies: ${data.movies ? data.movies.join(", ") : "N/A"}\n`;
+          reply += `🎵 Songs: ${data.songs ? data.songs.join(", ") : "N/A"}\n\n`;
+        }
+      }
+
+      if (!matched) {
+        reply += "Sorry, I couldn’t match your hobbies yet. Try fantasy, sci-fi, introvert, extrovert, or both.";
+      }
+
+      addMessage(reply, "bot");
+    }
+
+    // Start conversation
+    addMessage(questions[0], "bot");
+  </script>
+</body>
+</html>
